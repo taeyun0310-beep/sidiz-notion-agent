@@ -162,7 +162,7 @@ async function generateOnePost(prompt) {
     } catch (err) {
       console.warn(`  ⚠️ 시도 ${attempt} 실패:`, err.message.slice(0, 80));
       if (attempt < 3) {
-        const waitMs = attempt * 60000;
+        const waitMs = attempt * 120000;
         console.log(`  ⏳ ${waitMs / 1000}초 대기 후 재시도...`);
         await new Promise((r) => setTimeout(r, waitMs));
       }
@@ -192,14 +192,28 @@ export async function generateNewsPosts(count = 2) {
 - 사건사고, 재난
 ✅ 권장: 스포츠, 엔터(공연/영화/아이돌), 직장인 공감 트렌드, IT 신제품, 계절 트렌드
 
-2. 의자/앉음/자세와 자연스럽게 연결하는 포인트 발굴
-3. 연결성 좋은 ${count}개 선정 후 게시글 작성
+2. 각 뉴스에서 "개념적 연결고리"를 찾기
+   ❌ 표면적 연결 (금지): "이 사람도 오래 앉아있겠네", "의자가 많이 필요하겠다"
+   ✅ 개념적 연결 (권장): 뉴스 속 현상이 앉음/의자의 어떤 원리나 심리와 닮아있는가?
+
+   개념적 연결 예시:
+   - 아이폰 에어(얇은 기기) → "기기는 얇을수록 좋고, 의자는 얇을수록 나쁘다" (가치의 역설)
+   - 선거 TV 토론 → "딱딱한 의자에 앉으면 자기 의견을 더 고수하게 됨" (앉음이 태도를 설계)
+   - 불황/절약 트렌드 → "집에 있는 시간이 늘수록 의자가 더 중요해짐" (환경 변화와 앉음)
+   - 야구 직관 열풍 → "야구장 관람석은 앞으로 숙이게 설계되어 3시간 후 허리 폭발" (공간 설계와 자세)
+   - 집관 vs 현장 논쟁 → "공연장 딱딱한 의자 vs 내 의자에서 넷플릭스, 어느 쪽이 더 몰입?" (앉음의 질과 경험)
+
+3. 시팅랩 매거진 인사이트와 연결할 수 있으면 더 깊어짐
+   참고: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
+
+4. 개념적 연결이 가장 자연스럽고 깊은 ${count}개 선정 후 게시글 작성
 
 반드시 아래 JSON만 출력 (앞뒤 설명 없이):
 {
   "posts": [
     {
       "news_hook": "뉴스 한 줄 요약",
+      "conceptual_link": "뉴스와 앉음을 연결하는 개념적 포인트 한 줄",
       "angle": "연결 각도",
       "post": "스레드 게시글 본문"
     }
@@ -214,7 +228,7 @@ export async function generateNewsPosts(count = 2) {
   return parsed.posts.map((p) => ({
     type: "news",
     source: p.news_hook || "",
-    angle: p.angle || "",
+    angle: p.conceptual_link || p.angle || "",
     post: p.post || "",
     url: "",
   }));
@@ -250,8 +264,8 @@ export async function generateSitlabPosts(count = 2) {
    참고 URL: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
 2. "${format}"에 어울리는 글 1개 선택 후 내용 확인
    선택 기준: 숫자/데이터 | 반전 | 직장인 공감 | 몰랐던 사실
-   ⚠️ 오진승, 김중혁 글은 이미 많이 사용했으니 다른 글 선택할 것
-3. 핵심 인사이트 하나만 추출 (요약 금지)
+   ⚠️ 오진승, 김중혁 글은 이미 많이 사용했으니 반드시 다른 글 선택할 것
+3. 핵심 인사이트 하나만 추출 (요약 금지, 가장 자극적인 부분만)
 4. "${format}" 스타일로 게시글 작성
 
 반드시 아래 JSON만 출력 (앞뒤 설명 없이):
@@ -280,7 +294,7 @@ export async function generateSitlabPosts(count = 2) {
       });
     }
 
-    if (i < count - 1) await wait(65000);
+    if (i < count - 1) await wait(120000);
   }
 
   return results;
@@ -289,7 +303,7 @@ export async function generateSitlabPosts(count = 2) {
 export async function runAgent({ newsCount = 2, sitlabCount = 2 } = {}) {
   const news = await generateNewsPosts(newsCount);
 
-  await wait(65000);
+  await wait(120000);
 
   const sitlab = await generateSitlabPosts(sitlabCount);
 
