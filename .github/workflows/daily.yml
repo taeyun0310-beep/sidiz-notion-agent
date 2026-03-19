@@ -1,0 +1,47 @@
+name: 시팅랩 스레드 에이전트
+
+on:
+  # ── 자동: 매일 평일 오전 9시 KST (= UTC 00:00) ──
+  schedule:
+    - cron: "0 0 * * 1-5"
+
+  # ── 수동: GitHub Actions 탭에서 직접 실행 ──
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "DRY RUN (Notion 저장 없이 미리보기만)"
+        type: boolean
+        default: false
+      news_count:
+        description: "뉴스 연계 게시글 수"
+        default: "2"
+      sitlab_count:
+        description: "시팅랩 발췌 게시글 수"
+        default: "2"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: 게시글 생성 및 Notion 저장
+        env:
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN:         ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID:   ${{ secrets.NOTION_DATABASE_ID }}
+          NEWS_POST_COUNT:      ${{ inputs.news_count || '2' }}
+          SITLAB_POST_COUNT:    ${{ inputs.sitlab_count || '2' }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm test
+          else
+            npm start
+          fi
