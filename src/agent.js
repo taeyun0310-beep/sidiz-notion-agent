@@ -84,7 +84,7 @@ async function callClaude(messages) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const res = await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 2000,
         system: SYSTEM_PROMPT,
         tools: [{ type: "web_search_20250305", name: "web_search" }],
