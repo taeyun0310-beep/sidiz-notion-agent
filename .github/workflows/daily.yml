@@ -30,7 +30,7 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - run: npm ci
+      - run: npm install
 
       - name: 게시글 생성 및 Notion 저장
         env:
