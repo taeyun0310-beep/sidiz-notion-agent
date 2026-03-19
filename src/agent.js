@@ -141,7 +141,7 @@ function parseJson(text) {
 }
 
 async function wait(ms) {
-  console.log(`  ⏳ ${ms / 1000}초 대기 중...`);
+  console.log("  ⏳ " + (ms / 1000) + "초 대기 중...");
   await new Promise((r) => setTimeout(r, ms));
 }
 
