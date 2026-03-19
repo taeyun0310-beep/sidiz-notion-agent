@@ -15,24 +15,81 @@ const SYSTEM_PROMPT = `당신은 시디즈(SIDIZ) 의자 브랜드의 스레드(
 - 첫 두 줄이 전부. 여기서 멈추게 못 하면 실패
 - 설명하지 말고 보여주기
 
-[좋은 예시]
+[좋은 예시 — 이 톤과 구조를 따라해]
 
-예시1:
-국가대표 게이머한테 의자 세팅 어떻게 하냐고 물어봤더니
-"저는 경기 전날 꼭 의자 높이 다시 맞춰요"
-0.1초 싸움인데 앉는 자세까지 루틴이라고. 나는 배송온 채로 3년째 쓰고 있는데 👀
-
-예시2:
+예시1 (공감·충격형):
 아무리 좋은 의자에 앉아 있어도
 40분 지나면 불편함이 직선으로 증가한다고
 이건 의자 문제가 아니고 과학임
 근데 우리 평균 몇 시간씩 같은 자세로 앉아 있지? 🪑
+지금 앉은 지 얼마나 됐어?
 
-예시3:
+예시2 (반전 정보형):
+의자에 앉아서도 수면 가능하다는 거 알아?
+완전히 눕지 않아도 등판 각도 120도 이상이면
+수면의 질이 침대랑 비슷하다는 연구 결과가 있어
+근데 이게 가능하려면 헤드레스트가 있어야 함
+머리 기댈 곳 없으면 목이 버티느라 오히려 더 피곤해지거든 😇
+내 의자에 헤드레스트 있어? 없어?
+
+예시3 (직장인 공감형):
 오늘 회의에서 유독 내 의견이 안 먹혔다면
 혹시 딱딱한 의자에 앉아 있었던 거 아니야?
-예일대 심리 연구: 딱딱한 의자에 앉은 사람은 협상할 때 처음 금액을 끝까지 고수함
+딱딱한 의자에 앉은 사람은 협상할 때 처음 금액을 끝까지 고수함
 몸이 느끼는 단단함이 마음의 고집으로 번역된다고 🤯
+연봉 협상 앞두고 있다면 의자부터 봐
+
+예시4 (쪼개기 시리즈형 — 3개 연속 게시글):
+[1/3]
+아이디어가 안 떠오를 때 자세 바꿔봤어?
+이거 뇌과학이나 기분 문제가 아니라
+진짜 연구로 증명된 얘기야 👇
+
+[2/3]
+서 있을 때: 아이디어가 빠르게 많이 나옴. 근데 좀 거칠고 날것.
+등판에 기댄 채 앉을 때: 아이디어가 적게 나오는 대신 더 깊고 정돈됨
+즉, 브레인스토밍은 서서, 아이디어 정제는 기대서 하는 게 맞음
+
+[3/3]
+근데 이게 의자랑 무슨 상관이냐면
+등판에 기대려면 등판이 있어야 하고
+편하게 기대려면 럼버서포트가 버텨줘야 함
+좋은 의자 = 집중 모드와 이완 모드 사이를 자유롭게 오갈 수 있는 의자
+나 이거 알고 나서 의자에 집착하는 이유 설명하기가 훨씬 쉬워졌음 🪑
+
+예시5 (사회 현상 관찰형):
+사무실에서 헤드레스트 달린 의자 쓰는 사람이
+보통 누구인지 생각해봤어?
+개방형 사무실에서 직급 높은 사람일수록 헤드레스트 있는 의자를 썼대
+이게 규정이 아니라 암묵적 룰처럼 작동했다는 거야
+의자가 직급을 표시하는 언어였던 셈
+지금 내 의자엔 헤드레스트 있어, 없어? 😅
+
+예시6 (저장 유도형):
+면접관이 의자를 앞으로 당길 때랑 뒤로 밀 때
+면접 결과가 달라진다는 연구 알아?
+가까이 뒀을 때 면접 시간: 평균 12분 46초
+멀리 뒀을 때 면접 시간: 평균 9분 25초
+단 10cm 차이가 분위기를 바꾼 거야
+면접 보는 분들, 면접관 자세 보고 분위기 파악하는 것도 전략임 👀
+
+예시7 (시팅랩 연계형):
+의자를 40년 연구한 사람한테 물어봤어
+"헤드레스트 꼭 필요해요?"
+대답이 예상외였음
+항상 꼿꼿이만 앉는다면? 없어도 됨
+중간에 기대거나 생각 정리하는 시간이 있다면? 반드시 필요
+보잉·BMW랑 40년 협업한 인간공학 교수 얘기임
+더 궁금하면 → [시팅랩 링크] 🪑
+
+[게시글 유형 — 매번 다른 유형으로 번갈아 작성할 것]
+- 공감·충격형: 숫자/데이터로 훅, 마지막에 질문
+- 반전 정보형: 몰랐던 사실 → yes/no 질문으로 마무리
+- 직장인 공감형: 직장 상황 공감 → 의자와 연결 → 실용 팁
+- 쪼개기 시리즈형: 3개 연속 게시글로 구성 (훅 → 본론 → 마무리+감상)
+- 사회 현상 관찰형: "이거 우리 회사 얘기인데?" 유발 → 댓글 유도
+- 저장 유도형: 구체적 숫자 → 실용 정보 → 저장하고 싶게 만들기
+- 시팅랩 연계형: 전문가 발언 한 줄 → 반전 → 자연스럽게 링크 연결
 
 [나쁜 예시]
 ❌ 억지 드립: "26만명 모인다고? 의자 26만개는 어디 두지?"
@@ -127,7 +184,7 @@ export async function generateNewsPosts(count = 2) {
 - 주가/환율 등 금융 불안
 - 정치 뉴스
 - 사건사고, 재난
-✅ 권장: 스포츠, 엔터(공연/영화/아이돌), 직장인 공감 트렌드, IT 신제품, 계절 트렌드
+✅ 권장: 스포츠, 엔터(공연/영화/아이돌), 직장인 공감 트렌드, IT 신제품, 계절 트렌드, 밈
 
 2. 의자/앉음/자세와 자연스럽게 연결하는 포인트 발굴
 3. 연결성 좋은 ${count}개 선정 후 게시글 작성
@@ -160,55 +217,79 @@ export async function generateNewsPosts(count = 2) {
 }
 
 export async function generateSitlabPosts(count = 2) {
-  console.log(`  📚 시팅랩 ${count}개 생성 중...`);
+  const formats = [
+    "공감·충격형",
+    "반전 정보형",
+    "직장인 공감형",
+    "사회 현상 관찰형",
+    "저장 유도형",
+    "시팅랩 연계형",
+  ];
 
-  const text = await callClaude([{
-    role: "user",
-    content: `[시팅랩 발췌 스레드 생성]
-생성 수: ${count}개
+  const dayOfYear = Math.floor(
+    (new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000
+  );
+
+  const results = [];
+
+  for (let i = 0; i < count; i++) {
+    const format = formats[(dayOfYear + i) % formats.length];
+    console.log(`  📚 시팅랩 게시글 ${i + 1}/${count} 생성 중... (${format})`);
+
+    const text = await generateOnePost(`[시팅랩 발췌 스레드 생성]
+
+오늘의 게시글 유형: ${format}
 
 단계:
-1. 아래 URL 방문해서 최신 글 목록 확인:
-   https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
-2. 최신 글 3~5개에서 스레드에 올리기 좋은 인사이트 발굴
-   기준: 숫자/데이터 | 반전 | 직장인 공감 | 몰랐던 사실
-3. 각 글에서 핵심 인사이트 하나만 추출 (요약 금지)
+1. 아래 검색어로 시팅랩 글 검색:
+   검색어: "시디즈 시팅랩" 또는 "sidiz sitting lab"
+   참고 URL: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
+2. "${format}"에 어울리는 글 1개 선택 후 내용 확인
+   선택 기준: 숫자/데이터 | 반전 | 직장인 공감 | 몰랐던 사실
+   ⚠️ 오진승, 김중혁 글은 이미 많이 사용했으니 다른 글 선택할 것
+3. 핵심 인사이트 하나만 추출 (요약 금지)
+4. "${format}" 스타일로 게시글 작성
 
 반드시 아래 JSON만 출력 (앞뒤 설명 없이):
 {
   "posts": [
     {
-      "source_title": "시팅랩 글 제목",
+      "source_title": "참고한 시팅랩 글 제목",
       "source_url": "해당 글 URL",
       "insight": "핵심 인사이트 한 줄",
-      "format": "사용 형식",
+      "format": "${format}",
       "post": "스레드 게시글 본문"
     }
   ]
-}`,
-  }]);
+}`);
 
-  const parsed = parseJson(text);
-  if (!parsed.posts || parsed.posts.length === 0) {
-    console.warn("  ⚠️ 시팅랩 게시글 생성 결과 없음");
-    return [];
+    const parsed = parseJson(text);
+    if (parsed.posts && parsed.posts.length > 0) {
+      const p = parsed.posts[0];
+      results.push({
+        type: "sitlab",
+        source: p.source_title || "",
+        angle: p.format || format,
+        post: p.post || "",
+        url: p.source_url || "",
+        insight: p.insight || "",
+      });
+    }
+
+    if (i < count - 1) await wait(65000);
   }
 
-  return parsed.posts.map((p) => ({
-    type: "sitlab",
-    source: p.source_title || "",
-    angle: p.format || "",
-    post: p.post || "",
-    url: p.source_url || "",
-    insight: p.insight || "",
-  }));
+  return results;
 }
 
 export async function runAgent({ newsCount = 2, sitlabCount = 2 } = {}) {
-  const [news, sitlab] = await Promise.all([
-    generateNewsPosts(newsCount),
-    generateSitlabPosts(sitlabCount),
-  ]);
+  // 순차 실행 (rate limit 방지)
+  const news = await generateNewsPosts(newsCount);
+
+  await wait(65000);
+
+  const sitlab = await generateSitlabPosts(sitlabCount);
+
   const all = [...news, ...sitlab];
   console.log(`  ✅ 총 ${all.length}개 게시글 생성 완료`);
   return all;
