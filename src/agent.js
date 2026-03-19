@@ -97,3 +97,203 @@ const SYSTEM_PROMPT = `당신은 시디즈(SIDIZ) 의자 브랜드의 스레드(
 ❌ 억지 드립: "26만명 모인다고? 의자 26만개는 어디 두지?"
 ❌ 설명충: "앉아서 보는 게 얼마나 소중한지 알게 해주는 공연"
 ❌ 권위 수식어: "예일대 심리 연구에서 밝혀진 사실:"
+
+[추가 금지사항]
+- 하나의 게시글에 관찰 포인트 2개 이상 금지
+- 자조 멘트는 전체 결과물 중 1개에만 허용
+
+[마무리 패턴 — 반드시 아래 3가지 중 하나로 끝낼 것]
+A) 질문: "지금 내 의자에 헤드레스트 있어, 없어?"
+B) 짧은 여운: "의자는 일정한데 사람이 변하네 🪑"
+C) 에디터 S 자조 (전체 중 1개만): "나는 배송온 채로 3년째"
+
+[형식]
+- 해시태그 없음
+- 이모지 끝에 1개
+- 200자 내외 최대 300자
+- ~습니다 금지
+- 단락 1~3줄로 끊기`;
+
+function extractText(content) {
+  return content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("\n");
+}
+
+function parseJson(text) {
+  console.log("=== AI 응답 원문 (앞 500자) ===");
+  console.log(text.slice(0, 500));
+  console.log("================================");
+  const match = text.match(/\{[\s\S]*"posts"[\s\S]*\}/);
+  if (!match) {
+    console.warn("⚠️ JSON을 찾지 못함, 빈 결과로 대체");
+    return { posts: [] };
+  }
+  try {
+    return JSON.parse(match[0]);
+  } catch (e) {
+    console.warn("⚠️ JSON 파싱 에러:", e.message);
+    return { posts: [] };
+  }
+}
+
+async function wait(ms) {
+  console.log(`  ⏳ ${ms / 1000}초 대기 중...`);
+  await new Promise((r) => setTimeout(r, ms));
+}
+
+async function generateOnePost(prompt) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await client.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: prompt }],
+      });
+      const text = extractText(res.content);
+      if (!text || text.trim().length === 0) {
+        console.warn(`  ⚠️ 시도 ${attempt}: 빈 응답`);
+      } else {
+        return text;
+      }
+    } catch (err) {
+      console.warn(`  ⚠️ 시도 ${attempt} 실패:`, err.message.slice(0, 80));
+      if (attempt < 3) {
+        const waitMs = attempt * 60000;
+        console.log(`  ⏳ ${waitMs / 1000}초 대기 후 재시도...`);
+        await new Promise((r) => setTimeout(r, waitMs));
+      }
+    }
+  }
+  return "";
+}
+
+export async function generateNewsPosts(count = 2) {
+  const today = new Date().toLocaleDateString("ko-KR", {
+    year: "numeric", month: "long", day: "numeric",
+  });
+
+  console.log(`  📰 뉴스 ${count}개 생성 중...`);
+
+  const text = await generateOnePost(`[뉴스 연계 스레드 생성]
+오늘 날짜: ${today}
+생성 수: ${count}개
+
+단계:
+1. 오늘 한국 화제 뉴스를 웹 검색으로 3~5개 찾기
+
+⚠️ 절대 사용 금지:
+- 특정 기업 위기/논란 (주총, 주가 폭락 등)
+- 주가/환율 등 금융 불안
+- 정치 뉴스
+- 사건사고, 재난
+✅ 권장: 스포츠, 엔터(공연/영화/아이돌), 직장인 공감 트렌드, IT 신제품, 계절 트렌드
+
+2. 의자/앉음/자세와 자연스럽게 연결하는 포인트 발굴
+3. 연결성 좋은 ${count}개 선정 후 게시글 작성
+
+반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+{
+  "posts": [
+    {
+      "news_hook": "뉴스 한 줄 요약",
+      "angle": "연결 각도",
+      "post": "스레드 게시글 본문"
+    }
+  ]
+}`);
+
+  const parsed = parseJson(text);
+  if (!parsed.posts || parsed.posts.length === 0) {
+    console.warn("  ⚠️ 뉴스 게시글 생성 결과 없음");
+    return [];
+  }
+  return parsed.posts.map((p) => ({
+    type: "news",
+    source: p.news_hook || "",
+    angle: p.angle || "",
+    post: p.post || "",
+    url: "",
+  }));
+}
+
+export async function generateSitlabPosts(count = 2) {
+  const formats = [
+    "공감·충격형",
+    "반전 정보형",
+    "직장인 공감형",
+    "사회 현상 관찰형",
+    "저장 유도형",
+    "시팅랩 연계형",
+  ];
+
+  const dayOfYear = Math.floor(
+    (new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000
+  );
+
+  const results = [];
+
+  for (let i = 0; i < count; i++) {
+    const format = formats[(dayOfYear + i) % formats.length];
+    console.log(`  📚 시팅랩 게시글 ${i + 1}/${count} 생성 중... (${format})`);
+
+    const text = await generateOnePost(`[시팅랩 발췌 스레드 생성]
+
+오늘의 게시글 유형: ${format}
+
+단계:
+1. 아래 검색어로 시팅랩 글 검색:
+   검색어: "시디즈 시팅랩" 또는 "sidiz sitting lab"
+   참고 URL: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
+2. "${format}"에 어울리는 글 1개 선택 후 내용 확인
+   선택 기준: 숫자/데이터 | 반전 | 직장인 공감 | 몰랐던 사실
+   ⚠️ 오진승, 김중혁 글은 이미 많이 사용했으니 다른 글 선택할 것
+3. 핵심 인사이트 하나만 추출 (요약 금지)
+4. "${format}" 스타일로 게시글 작성
+
+반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+{
+  "posts": [
+    {
+      "source_title": "참고한 시팅랩 글 제목",
+      "source_url": "해당 글 URL",
+      "insight": "핵심 인사이트 한 줄",
+      "format": "${format}",
+      "post": "스레드 게시글 본문"
+    }
+  ]
+}`);
+
+    const parsed = parseJson(text);
+    if (parsed.posts && parsed.posts.length > 0) {
+      const p = parsed.posts[0];
+      results.push({
+        type: "sitlab",
+        source: p.source_title || "",
+        angle: p.format || format,
+        post: p.post || "",
+        url: p.source_url || "",
+        insight: p.insight || "",
+      });
+    }
+
+    if (i < count - 1) await wait(65000);
+  }
+
+  return results;
+}
+
+export async function runAgent({ newsCount = 2, sitlabCount = 2 } = {}) {
+  const news = await generateNewsPosts(newsCount);
+
+  await wait(65000);
+
+  const sitlab = await generateSitlabPosts(sitlabCount);
+
+  const all = [...news, ...sitlab];
+  console.log(`  ✅ 총 ${all.length}개 게시글 생성 완료`);
+  return all;
+}
