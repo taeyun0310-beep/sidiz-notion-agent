@@ -1,10 +1,8 @@
 name: 시팅랩 스레드 에이전트
-
 on:
-  # ── 자동: KST 새벽 1시 실행 (UTC 16:00), 지연 감안 오전 5시쯤 수신 ──
+  # ── 자동: KST 오전 9시 실행 (UTC 00:00), 월~금 ──
   schedule:
-    - cron: "0 16 * * 0-4"
-
+    - cron: "0 17 * * 1-5"
   # ── 수동: GitHub Actions 탭에서 직접 실행 ──
   workflow_dispatch:
     inputs:
@@ -12,32 +10,36 @@ on:
         description: "DRY RUN (Notion 저장 없이 미리보기만)"
         type: boolean
         default: false
-      news_count:
-        description: "뉴스 연계 게시글 수"
-        default: "2"
-      sitlab_count:
-        description: "시팅랩 발췌 게시글 수"
-        default: "2"
-
+      force_type:
+        description: "강제 실행 유형 (비워두면 오늘 요일 자동)"
+        type: choice
+        default: ""
+        options:
+          - ""
+          - observation
+          - debate
+          - tip
+          - trend
+          - magazine
+      count:
+        description: "게시글 수 (트렌드·매거진만 해당)"
+        default: "1"
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-
       - run: npm install
-
       - name: 게시글 생성 및 Notion 저장
         env:
-          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
-          NOTION_TOKEN:         ${{ secrets.NOTION_TOKEN }}
-          NOTION_DATABASE_ID:   ${{ secrets.NOTION_DATABASE_ID }}
-          NEWS_POST_COUNT:      ${{ inputs.news_count || '2' }}
-          SITLAB_POST_COUNT:    ${{ inputs.sitlab_count || '2' }}
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN:       ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          FORCE_TYPE:         ${{ inputs.force_type || '' }}
+          POST_COUNT:         ${{ inputs.count || '1' }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             npm test
