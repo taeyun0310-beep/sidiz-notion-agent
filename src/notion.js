@@ -9,7 +9,7 @@ const DB_ID = process.env.NOTION_DATABASE_ID;
 //  컬럼명     타입      설명
 //  ────────  ──────   ─────────────────────────────
 //  제목       Title    자동 생성 (건드리지 않아도 됨)
-//  유형       Select   뉴스 연계 / 시팅랩 발췌
+//  유형       Select   관찰 글 / 논쟁 유발 / 생활 팁 / 트렌드 연결 / 매거진 연결
 //  게시글     Text     스레드 본문
 //  출처       Text     뉴스 훅 또는 시팅랩 글 제목
 //  인사이트    Text     핵심 인사이트 or 연결 각도
@@ -18,12 +18,24 @@ const DB_ID = process.env.NOTION_DATABASE_ID;
 //  생성일     Date     자동 입력
 // ─────────────────────────────────────────────────────────────────────
 
+// agent.js 영문 타입 → 노션 한국어 선택지
+const TYPE_LABEL = {
+  observation: "관찰 글",
+  debate:      "논쟁 유발",
+  tip:         "생활 팁",
+  trend:       "트렌드 연결",
+  magazine:    "매거진 연결",
+  // 기존 타입 하위 호환
+  news:        "트렌드 연결",
+  sitlab:      "매거진 연결",
+};
+
 export async function saveToNotion(posts) {
   const today = new Date().toISOString().split("T")[0];
   let saved = 0;
 
   for (const post of posts) {
-    const isNews = post.type === "news";
+    const typeLabel = TYPE_LABEL[post.type] || post.type;
     const title = `[${today}] ${(post.source || "").slice(0, 45)}`;
 
     try {
@@ -34,7 +46,7 @@ export async function saveToNotion(posts) {
             title: [{ text: { content: title } }],
           },
           유형: {
-            select: { name: isNews ? "뉴스 연계" : "시팅랩 발췌" },
+            select: { name: typeLabel },
           },
           게시글: {
             rich_text: [{ text: { content: post.post || "" } }],
@@ -76,7 +88,7 @@ export async function saveToNotion(posts) {
             type: "bulleted_list_item",
             bulleted_list_item: {
               rich_text: [
-                { text: { content: `유형: ${isNews ? "뉴스 연계" : "시팅랩 발췌"}` } },
+                { text: { content: `유형: ${typeLabel}` } },
               ],
             },
           },
