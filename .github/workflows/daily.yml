@@ -2,7 +2,7 @@ name: 시팅랩 스레드 에이전트
 on:
   # ── 자동: KST 오전 9시 실행 (UTC 00:00), 월~금 ──
   schedule:
-    - cron: "0 17 * * 1-5"
+    - cron: "0 17 * * 0-4"
   # ── 수동: GitHub Actions 탭에서 직접 실행 ──
   workflow_dispatch:
     inputs:
