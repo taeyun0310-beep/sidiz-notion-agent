@@ -368,7 +368,9 @@ export async function generateTrendPost(count) {
 
 4. 개념적 연결이 가장 자연스럽고 깊은 ${count}개 선정 후 게시글 작성
 
-반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
+반드시 아래 JSON만 출력. 마크다운, 설명, 분석 텍스트 일절 금지.
+
 {
   "posts": [
     {
