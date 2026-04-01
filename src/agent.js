@@ -117,7 +117,11 @@ function parseJson(text) {
   console.log("=== AI 응답 원문 (앞 500자) ===");
   console.log(text.slice(0, 500));
   console.log("================================");
-  const match = text.match(/\{[\s\S]*"posts"[\s\S]*\}/);
+
+  // 코드블록 제거 후 JSON 추출 시도
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  const match = cleaned.match(/\{[\s\S]*"posts"[\s\S]*\}/);
+
   if (!match) {
     console.warn("JSON을 찾지 못함, 빈 결과로 대체");
     return { posts: [] };
@@ -173,6 +177,7 @@ export async function generateObservationPost() {
   console.log("  관찰 글 생성 중...");
 
   const scenes = [
+    // 공간 관찰
     "카페에서 작업하다 자세가 무너진 순간",
     "재택 중 거울 보고 목이 앞으로 나온 걸 발견한 순간",
     "회사 회의실 의자가 유독 불편했던 경험",
@@ -180,6 +185,21 @@ export async function generateObservationPost() {
     "지하철에서 앉은 사람들 자세를 관찰한 경험",
     "드라마 보다가 배경 의자를 먼저 알아본 순간",
     "마감 중 집중할수록 구부정해지는 자신을 발견한 순간",
+    // 취미·일상
+    "뜨개질·독서·게임 등 오래 앉는 취미 하다 허리가 굳은 경험",
+    "피크닉 돗자리에 오래 앉았다가 일어설 때 허리가 뻐근했던 경험",
+    "식당 의자가 너무 낮거나 높아서 밥 먹는 내내 불편했던 경험",
+    "병원 대기실 딱딱한 의자에 한 시간 넘게 앉아있던 경험",
+    "비행기·기차 좌석에서 장시간 버티다 내릴 때 몸이 굳어있던 경험",
+    // 몸의 신호
+    "오후 3시만 되면 집중력이 뚝 떨어지는 이유를 자세에서 발견한 순간",
+    "두통이나 눈 피로가 의자 높이 문제였다는 걸 뒤늦게 안 순간",
+    "운동을 안 했는데 퇴근하면 온몸이 피곤한 이유를 알게 된 순간",
+    "어깨 뻐근함이 팔걸이 높이 문제였다는 걸 발견한 순간",
+    // 인간 관계
+    "카페 자리 고를 때 콘센트보다 의자를 먼저 보는 자신을 발견한 순간",
+    "누군가의 홈오피스 사진에서 의자만 눈에 들어온 순간",
+    "친구가 허리 아프다고 할 때 의자 얘기부터 꺼내는 자신",
   ];
 
   const scene = scenes[Math.floor(Math.random() * scenes.length)];
@@ -196,7 +216,8 @@ export async function generateObservationPost() {
 - "내 얘기잖아" 하는 공감이 핵심
 - 설명·교훈 덧붙이기 금지. 관찰 자체로 끝내기
 
-반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
+반드시 아래 JSON만 출력. 마크다운, 설명 텍스트 일절 금지.
 {
   "posts": [
     {
@@ -227,12 +248,29 @@ export async function generateDebatePost() {
   console.log("  논쟁 유발 글 생성 중...");
 
   const topics = [
+    // 의자 투자
     "의자에 50만원 이상 쓰는 게 맞냐 vs 그냥 일어서서 일해라",
-    "재택할 때 의자가 중요하냐 vs 스탠딩 데스크가 더 중요하냐",
-    "허리 안 아프면 의자에 신경 안 써도 된다 vs 안 아픈 게 건강한 게 아니다",
-    "의자는 직접 앉아보고 사야 한다 vs 온라인 후기로도 충분하다",
-    "홈오피스에 가장 먼저 투자해야 할 것: 의자 vs 모니터 vs 책상",
     "비싼 의자 vs 저렴한 의자 + 좋은 매트리스, 어디에 돈을 써야 하나",
+    "침대에 100만원 쓰는 건 당연하고 의자에 100만원 쓰면 이상한 사람 취급받는 현실",
+    "의자는 직접 앉아보고 사야 한다 vs 온라인 후기로도 충분하다",
+    "당근에서 의자 사는 게 맞냐 vs 새 제품을 사야 한다",
+    // 홈오피스·재택
+    "재택할 때 의자가 중요하냐 vs 스탠딩 데스크가 더 중요하냐",
+    "홈오피스에 가장 먼저 투자해야 할 것: 의자 vs 모니터 vs 책상",
+    "재택근무 번아웃의 원인이 업무량이냐 vs 앉는 환경이냐",
+    "카페에서 일하는 게 집에서 일하는 것보다 집중이 잘 된다 vs 의자 때문에 오히려 더 힘들다",
+    // 건강·자세
+    "허리 안 아프면 의자에 신경 안 써도 된다 vs 안 아픈 게 건강한 게 아니다",
+    "바른 자세로 앉으면 된다 vs 좋은 의자가 없으면 자세 교정은 불가능하다",
+    "서서 일하는 게 진짜 답이냐 vs 결국 앉는 시간을 잘 버티는 게 핵심이냐",
+    "스트레칭으로 허리 통증을 해결할 수 있냐 vs 근본 원인인 의자를 바꿔야 한다",
+    // 삶의 태도
+    "의자에 돈 쓰는 게 사치냐 vs 하루 10시간 앉아있는 사람한테 필수 투자냐",
+    "나이 들수록 의자가 중요해진다 vs 젊을 때부터 신경 써야 한다",
+    "좋은 의자 하나면 충분하냐 vs 의자보다 습관이 더 중요하냐",
+    // 공간·취미
+    "피크닉 의자 챙기면 짐 많다 vs 돗자리에 두 시간 앉으면 허리로 다 느낀다",
+    "오래 하는 취미일수록 의자 세팅이 중요하다 vs 잠깐이면 상관없다",
   ];
 
   const topic = topics[Math.floor(Math.random() * topics.length)];
@@ -249,7 +287,8 @@ export async function generateDebatePost() {
 - 에디터 S의 실제 경험이나 주변 사례에서 시작하면 자연스러움
 - 마지막에 독자한테 질문 던지기
 
-반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
+반드시 아래 JSON만 출력. 마크다운, 설명 텍스트 일절 금지.
 {
   "posts": [
     {
@@ -280,12 +319,30 @@ export async function generateTipPost() {
   console.log("  생활 팁 글 생성 중...");
 
   const tipTopics = [
+    // 의자 세팅
     "의자 높이를 지금 당장 맞추는 법 (무릎·팔꿈치 기준)",
-    "오후 집중력이 떨어지는 이유와 자세 체크법",
     "의자 살 때 반드시 확인해야 하는 것 (요추 지지대·좌판 깊이·팔걸이)",
+    "헤드레스트 높이·각도 맞추는 법 — 잘못 맞추면 목을 앞으로 민다",
+    "틸트(등판 기울기) 기능 활용법 — 집중 모드와 이완 모드 전환",
+    "좌판 깊이 조절 기능 — 양반다리 할 때 이렇게 쓰면 됨",
+    "팔걸이 높이 맞추는 법 — 어깨 뻐근함의 숨겨진 원인",
+    "당근으로 의자 샀을 때 가장 먼저 해야 할 세팅 3가지",
+    // 자세·습관
+    "오후 집중력이 떨어지는 이유와 자세 체크법",
     "재택 중 허리가 덜 아파지는 모니터 높이 세팅",
     "1시간에 한 번, 30초면 충분한 의자 스트레칭",
+    "집중할수록 구부정해지는 걸 막는 방법",
+    "발이 바닥에 닿지 않을 때 — 발받침대가 필요한 이유",
+    "양반다리 자동으로 하게 되는 이유와 해결법",
+    // 공간별
     "카페에서 오래 앉아 일할 때 덜 힘든 자리 고르는 법",
+    "창가 자리가 거북목을 만드는 이유",
+    "테이블 높이 맞는지 확인하는 법 — 팔꿈치 기준",
+    "피크닉에서 돗자리 오래 앉지 않는 방법",
+    // 구매·선택
+    "중고 의자 살 때 꼭 확인해야 하는 3가지",
+    "의자 소재별 특징 — 메쉬 vs 패브릭 vs 가죽 어떤 상황에 맞나",
+    "홈오피스 의자 vs 게이밍 의자 — 무엇이 다른가",
   ];
 
   const tipTopic = tipTopics[Math.floor(Math.random() * tipTopics.length)];
@@ -302,7 +359,8 @@ export async function generateTipPost() {
 - 번호 매기기(1. 2. 3.) 금지. 자연스러운 흐름으로
 - 마지막에 독자가 바로 실행해볼 수 있는 한 가지 행동 제안
 
-반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
+반드시 아래 JSON만 출력. 마크다운, 설명 텍스트 일절 금지.
 {
   "posts": [
     {
@@ -327,7 +385,7 @@ export async function generateTipPost() {
   }));
 }
 
-// ─── 4. 트렌드 연결 (목) ── 기존 generateNewsPosts ──────────────────────────
+// ─── 4. 트렌드 연결 (목) ────────────────────────────────────────────────────
 
 export async function generateTrendPost(count) {
   if (!count) count = 1;
@@ -397,7 +455,7 @@ export async function generateTrendPost(count) {
   }));
 }
 
-// ─── 5. 매거진 연결 (금) ── 기존 generateSitlabPosts ────────────────────────
+// ─── 5. 매거진 연결 (금) ────────────────────────────────────────────────────
 
 export async function generateMagazinePost(count) {
   if (!count) count = 1;
@@ -419,9 +477,7 @@ export async function generateMagazinePost(count) {
 
   for (let i = 0; i < count; i++) {
     const format = formats[(dayOfYear + i) % formats.length];
-    console.log(
-      `  매거진 연결 ${i + 1}/${count} 생성 중... (${format})`
-    );
+    console.log(`  매거진 연결 ${i + 1}/${count} 생성 중... (${format})`);
 
     const prompt = `[시팅랩 매거진 연결 스레드 생성]
 
@@ -439,7 +495,8 @@ export async function generateMagazinePost(count) {
 4. 스레드에서는 절반만 풀고 "시팅랩에 더 써뒀어" 식으로 자연스럽게 연결
    "확인해보세요! 링크 👇" 같은 직접 홍보 절대 금지
 
-반드시 아래 JSON만 출력 (앞뒤 설명 없이):
+위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
+반드시 아래 JSON만 출력. 마크다운, 설명 텍스트 일절 금지.
 {
   "posts": [
     {
@@ -478,13 +535,11 @@ export async function generateMagazinePost(count) {
 //  목(4) 트렌드 연결   금(5) 매거진 연결
 
 export async function runAgent(options) {
-  // KST 기준 오늘 요일 계산
   const kstOffset = 9 * 60;
   const now = new Date();
   const kstDate = new Date(now.getTime() + kstOffset * 60 * 1000);
-  const day = kstDate.getUTCDay(); // 0=일, 1=월, ..., 6=토
+  const day = kstDate.getUTCDay();
 
-  // 오버라이드 옵션 (테스트·수동 실행 시 사용)
   const forceType = options && options.forceType;
   const count = (options && options.count) ? options.count : 1;
 
@@ -531,7 +586,7 @@ export async function runAgent(options) {
   return posts;
 }
 
-// ─── 하위 호환 래퍼 (기존 코드가 이 함수명을 쓰고 있다면 유지) ──────────────
+// ─── 하위 호환 래퍼 ──────────────────────────────────────────────────────────
 
 /** @deprecated generateTrendPost 사용 권장 */
 export async function generateNewsPosts(count) {
