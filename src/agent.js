@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { fetchSitlabArticles, pickArticle } from "./sheets.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -118,7 +119,6 @@ function parseJson(text) {
   console.log(text.slice(0, 500));
   console.log("================================");
 
-  // 코드블록 제거 후 JSON 추출 시도
   const cleaned = text.replace(/```json|```/g, "").trim();
   const match = cleaned.match(/\{[\s\S]*"posts"[\s\S]*\}/);
 
@@ -171,44 +171,33 @@ async function generateOnePost(prompt, useWebSearch = false) {
   return "";
 }
 
+// 아티클 컨텍스트 블록 생성
+function articleContext(article) {
+  const lines = [];
+  if (article.month) lines.push(`발행월: ${article.month}`);
+  if (article.theme) lines.push(`테마: ${article.theme}`);
+  if (article.category) lines.push(`구분: ${article.category}`);
+  lines.push(`주제: ${article.title}`);
+  if (article.content) {
+    const body = article.content.slice(0, 800);
+    lines.push(`원고:\n${body}${article.content.length > 800 ? "..." : ""}`);
+  }
+  if (article.url) lines.push(`URL: ${article.url}`);
+  return lines.join("\n");
+}
+
 // ─── 1. 관찰 글 (월) ────────────────────────────────────────────────────────
 
-export async function generateObservationPost() {
+export async function generateObservationPost(article) {
   console.log("  관찰 글 생성 중...");
-
-  const scenes = [
-    // 공간 관찰
-    "카페에서 작업하다 자세가 무너진 순간",
-    "재택 중 거울 보고 목이 앞으로 나온 걸 발견한 순간",
-    "회사 회의실 의자가 유독 불편했던 경험",
-    "친구 집 홈오피스 세팅을 보고 한마디 하고 싶었던 상황",
-    "지하철에서 앉은 사람들 자세를 관찰한 경험",
-    "드라마 보다가 배경 의자를 먼저 알아본 순간",
-    "마감 중 집중할수록 구부정해지는 자신을 발견한 순간",
-    // 취미·일상
-    "뜨개질·독서·게임 등 오래 앉는 취미 하다 허리가 굳은 경험",
-    "피크닉 돗자리에 오래 앉았다가 일어설 때 허리가 뻐근했던 경험",
-    "식당 의자가 너무 낮거나 높아서 밥 먹는 내내 불편했던 경험",
-    "병원 대기실 딱딱한 의자에 한 시간 넘게 앉아있던 경험",
-    "비행기·기차 좌석에서 장시간 버티다 내릴 때 몸이 굳어있던 경험",
-    // 몸의 신호
-    "오후 3시만 되면 집중력이 뚝 떨어지는 이유를 자세에서 발견한 순간",
-    "두통이나 눈 피로가 의자 높이 문제였다는 걸 뒤늦게 안 순간",
-    "운동을 안 했는데 퇴근하면 온몸이 피곤한 이유를 알게 된 순간",
-    "어깨 뻐근함이 팔걸이 높이 문제였다는 걸 발견한 순간",
-    // 인간 관계
-    "카페 자리 고를 때 콘센트보다 의자를 먼저 보는 자신을 발견한 순간",
-    "누군가의 홈오피스 사진에서 의자만 눈에 들어온 순간",
-    "친구가 허리 아프다고 할 때 의자 얘기부터 꺼내는 자신",
-  ];
-
-  const scene = scenes[Math.floor(Math.random() * scenes.length)];
 
   const prompt = `[관찰 글 생성]
 
-에디터 S의 실제 일상 관찰 장면을 스레드 포스팅으로 작성해줘.
+시팅랩 아티클:
+${articleContext(article)}
 
-오늘의 소재: ${scene}
+위 아티클의 주제와 연결되는 에디터 S의 실제 일상 관찰 장면을 스레드 포스팅으로 작성해줘.
+아티클 내용을 직접 인용하거나 요약하지 말고, 그 주제에서 영감을 받아 날것의 관찰로만 풀어낼 것.
 
 작성 원칙:
 - 에디터 S가 직접 겪은 것처럼 1인칭으로
@@ -221,7 +210,7 @@ export async function generateObservationPost() {
 {
   "posts": [
     {
-      "scene": "${scene}",
+      "scene": "관찰 장면 한 줄 요약",
       "post": "스레드 게시글 본문"
     }
   ]
@@ -235,51 +224,24 @@ export async function generateObservationPost() {
   }
   return parsed.posts.map((p) => ({
     type: "observation",
-    source: p.scene || scene,
-    angle: "관찰 글",
+    source: article.title,
+    angle: p.scene || "관찰 글",
     post: p.post || "",
-    url: "",
+    url: article.url || "",
   }));
 }
 
 // ─── 2. 논쟁 유발 (화) ──────────────────────────────────────────────────────
 
-export async function generateDebatePost() {
+export async function generateDebatePost(article) {
   console.log("  논쟁 유발 글 생성 중...");
-
-  const topics = [
-    // 의자 투자
-    "의자에 50만원 이상 쓰는 게 맞냐 vs 그냥 일어서서 일해라",
-    "비싼 의자 vs 저렴한 의자 + 좋은 매트리스, 어디에 돈을 써야 하나",
-    "침대에 100만원 쓰는 건 당연하고 의자에 100만원 쓰면 이상한 사람 취급받는 현실",
-    "의자는 직접 앉아보고 사야 한다 vs 온라인 후기로도 충분하다",
-    "당근에서 의자 사는 게 맞냐 vs 새 제품을 사야 한다",
-    // 홈오피스·재택
-    "재택할 때 의자가 중요하냐 vs 스탠딩 데스크가 더 중요하냐",
-    "홈오피스에 가장 먼저 투자해야 할 것: 의자 vs 모니터 vs 책상",
-    "재택근무 번아웃의 원인이 업무량이냐 vs 앉는 환경이냐",
-    "카페에서 일하는 게 집에서 일하는 것보다 집중이 잘 된다 vs 의자 때문에 오히려 더 힘들다",
-    // 건강·자세
-    "허리 안 아프면 의자에 신경 안 써도 된다 vs 안 아픈 게 건강한 게 아니다",
-    "바른 자세로 앉으면 된다 vs 좋은 의자가 없으면 자세 교정은 불가능하다",
-    "서서 일하는 게 진짜 답이냐 vs 결국 앉는 시간을 잘 버티는 게 핵심이냐",
-    "스트레칭으로 허리 통증을 해결할 수 있냐 vs 근본 원인인 의자를 바꿔야 한다",
-    // 삶의 태도
-    "의자에 돈 쓰는 게 사치냐 vs 하루 10시간 앉아있는 사람한테 필수 투자냐",
-    "나이 들수록 의자가 중요해진다 vs 젊을 때부터 신경 써야 한다",
-    "좋은 의자 하나면 충분하냐 vs 의자보다 습관이 더 중요하냐",
-    // 공간·취미
-    "피크닉 의자 챙기면 짐 많다 vs 돗자리에 두 시간 앉으면 허리로 다 느낀다",
-    "오래 하는 취미일수록 의자 세팅이 중요하다 vs 잠깐이면 상관없다",
-  ];
-
-  const topic = topics[Math.floor(Math.random() * topics.length)];
 
   const prompt = `[논쟁 유발 글 생성]
 
-의자와 앉는 삶에 관한 통념을 건드리는 스레드 포스팅을 작성해줘.
+시팅랩 아티클:
+${articleContext(article)}
 
-오늘의 논쟁 주제: ${topic}
+위 아티클의 핵심 개념에서 논쟁 거리를 뽑아 스레드 포스팅을 작성해줘.
 
 작성 원칙:
 - 어느 한쪽 편을 들어도 되고, 양쪽 모두 건드려도 됨
@@ -292,7 +254,7 @@ export async function generateDebatePost() {
 {
   "posts": [
     {
-      "topic": "${topic}",
+      "topic": "논쟁 주제 한 줄 요약",
       "post": "스레드 게시글 본문"
     }
   ]
@@ -306,52 +268,24 @@ export async function generateDebatePost() {
   }
   return parsed.posts.map((p) => ({
     type: "debate",
-    source: p.topic || topic,
-    angle: "논쟁 유발",
+    source: article.title,
+    angle: p.topic || "논쟁 유발",
     post: p.post || "",
-    url: "",
+    url: article.url || "",
   }));
 }
 
 // ─── 3. 생활 팁 (수) ────────────────────────────────────────────────────────
 
-export async function generateTipPost() {
+export async function generateTipPost(article) {
   console.log("  생활 팁 글 생성 중...");
-
-  const tipTopics = [
-    // 의자 세팅
-    "의자 높이를 지금 당장 맞추는 법 (무릎·팔꿈치 기준)",
-    "의자 살 때 반드시 확인해야 하는 것 (요추 지지대·좌판 깊이·팔걸이)",
-    "헤드레스트 높이·각도 맞추는 법 — 잘못 맞추면 목을 앞으로 민다",
-    "틸트(등판 기울기) 기능 활용법 — 집중 모드와 이완 모드 전환",
-    "좌판 깊이 조절 기능 — 양반다리 할 때 이렇게 쓰면 됨",
-    "팔걸이 높이 맞추는 법 — 어깨 뻐근함의 숨겨진 원인",
-    "당근으로 의자 샀을 때 가장 먼저 해야 할 세팅 3가지",
-    // 자세·습관
-    "오후 집중력이 떨어지는 이유와 자세 체크법",
-    "재택 중 허리가 덜 아파지는 모니터 높이 세팅",
-    "1시간에 한 번, 30초면 충분한 의자 스트레칭",
-    "집중할수록 구부정해지는 걸 막는 방법",
-    "발이 바닥에 닿지 않을 때 — 발받침대가 필요한 이유",
-    "양반다리 자동으로 하게 되는 이유와 해결법",
-    // 공간별
-    "카페에서 오래 앉아 일할 때 덜 힘든 자리 고르는 법",
-    "창가 자리가 거북목을 만드는 이유",
-    "테이블 높이 맞는지 확인하는 법 — 팔꿈치 기준",
-    "피크닉에서 돗자리 오래 앉지 않는 방법",
-    // 구매·선택
-    "중고 의자 살 때 꼭 확인해야 하는 3가지",
-    "의자 소재별 특징 — 메쉬 vs 패브릭 vs 가죽 어떤 상황에 맞나",
-    "홈오피스 의자 vs 게이밍 의자 — 무엇이 다른가",
-  ];
-
-  const tipTopic = tipTopics[Math.floor(Math.random() * tipTopics.length)];
 
   const prompt = `[생활 팁 글 생성]
 
-당장 써먹을 수 있는 실용 팁을 스레드 포스팅으로 작성해줘.
+시팅랩 아티클:
+${articleContext(article)}
 
-오늘의 팁 주제: ${tipTopic}
+위 아티클에서 당장 써먹을 수 있는 실용 팁 하나를 뽑아 스레드 포스팅으로 작성해줘.
 
 작성 원칙:
 - 딱딱한 정보 전달이 아니라 에디터 S가 직접 써보고 알게 된 것처럼
@@ -364,7 +298,7 @@ export async function generateTipPost() {
 {
   "posts": [
     {
-      "tip_topic": "${tipTopic}",
+      "tip_topic": "팁 주제 한 줄 요약",
       "post": "스레드 게시글 본문"
     }
   ]
@@ -378,16 +312,16 @@ export async function generateTipPost() {
   }
   return parsed.posts.map((p) => ({
     type: "tip",
-    source: p.tip_topic || tipTopic,
-    angle: "생활 팁",
+    source: article.title,
+    angle: p.tip_topic || "생활 팁",
     post: p.post || "",
-    url: "",
+    url: article.url || "",
   }));
 }
 
 // ─── 4. 트렌드 연결 (목) ────────────────────────────────────────────────────
 
-export async function generateTrendPost(count) {
+export async function generateTrendPost(article, count) {
   if (!count) count = 1;
   const today = new Date().toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -401,6 +335,9 @@ export async function generateTrendPost(count) {
 오늘 날짜: ${today}
 생성 수: ${count}개
 
+시팅랩 아티클:
+${articleContext(article)}
+
 단계:
 1. 오늘 한국 화제 뉴스를 웹 검색으로 3~5개 찾기
 
@@ -411,20 +348,15 @@ export async function generateTrendPost(count) {
 - 사건사고, 재난
 권장: 스포츠, 엔터(공연/영화/아이돌), 직장인 공감 트렌드, IT 신제품, 계절 트렌드
 
-2. 각 뉴스에서 개념적 연결고리를 찾기
+2. 각 뉴스에서 위 시팅랩 아티클의 테마/개념과 개념적으로 연결되는 포인트를 찾기
 표면적 연결 금지: 이 사람도 오래 앉아있겠네, 의자가 많이 필요하겠다
-개념적 연결 권장: 뉴스 속 현상이 앉음/의자의 어떤 원리나 심리와 닮아있는가?
+개념적 연결 권장: 뉴스 속 현상이 아티클의 어떤 원리나 심리와 닮아있는가?
 
 개념적 연결 예시:
 - 아이폰 에어(얇은 기기) → 기기는 얇을수록 좋고, 의자는 얇을수록 나쁘다 (가치의 역설)
 - 선거 TV 토론 → 딱딱한 의자에 앉으면 자기 의견을 더 고수하게 됨 (앉음이 태도를 설계)
-- 불황/절약 트렌드 → 집에 있는 시간이 늘수록 의자가 더 중요해짐
-- 야구 직관 열풍 → 야구장 관람석은 앞으로 숙이게 설계되어 3시간 후 허리 폭발
 
-3. 시팅랩 매거진 인사이트와 연결할 수 있으면 더 깊어짐
-참고: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
-
-4. 개념적 연결이 가장 자연스럽고 깊은 ${count}개 선정 후 게시글 작성
+3. 개념적 연결이 가장 자연스럽고 깊은 ${count}개 선정 후 게시글 작성
 
 위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
 반드시 아래 JSON만 출력. 마크다운, 설명, 분석 텍스트 일절 금지.
@@ -433,7 +365,7 @@ export async function generateTrendPost(count) {
   "posts": [
     {
       "news_hook": "뉴스 한 줄 요약",
-      "conceptual_link": "뉴스와 앉음을 연결하는 개념적 포인트 한 줄",
+      "conceptual_link": "뉴스와 아티클 개념을 연결하는 포인트 한 줄",
       "angle": "연결 각도",
       "post": "스레드 게시글 본문"
     }
@@ -448,16 +380,16 @@ export async function generateTrendPost(count) {
   }
   return parsed.posts.map((p) => ({
     type: "trend",
-    source: p.news_hook || "",
+    source: p.news_hook || article.title,
     angle: p.conceptual_link || p.angle || "",
     post: p.post || "",
-    url: "",
+    url: article.url || "",
   }));
 }
 
 // ─── 5. 매거진 연결 (금) ────────────────────────────────────────────────────
 
-export async function generateMagazinePost(count) {
+export async function generateMagazinePost(article, count) {
   if (!count) count = 1;
 
   const formats = [
@@ -483,25 +415,19 @@ export async function generateMagazinePost(count) {
 
 오늘의 게시글 유형: ${format}
 
-단계:
-1. 아래 검색어로 시팅랩 글 검색:
-   검색어: 시디즈 시팅랩 또는 sidiz sitting lab
-   참고 URL: https://kr.sidiz.com/blogs/s-culture?category=sitting-lab&tags=all
-2. ${format}에 어울리는 글 1개 선택 후 내용 확인
-   선택 기준: 숫자/데이터 | 반전 | 직장인 공감 | 몰랐던 사실
-   반드시 kr.sidiz.com/blogs/s-culture 로 시작하는 URL의 글만 사용할 것
-   외부 블로그, 뉴스 기사, 다른 사이트 내용 절대 금지
-3. 핵심 인사이트 하나만 추출 (요약 금지, 가장 자극적인 부분만)
-4. 스레드에서는 절반만 풀고 "시팅랩에 더 써뒀어" 식으로 자연스럽게 연결
-   "확인해보세요! 링크 👇" 같은 직접 홍보 절대 금지
+시팅랩 아티클:
+${articleContext(article)}
+
+위 아티클의 핵심 인사이트 하나만 추출해서 (요약 금지, 가장 자극적인 부분만):
+- 스레드에서 절반만 풀고 "시팅랩에 더 써뒀어" 식으로 자연스럽게 연결
+- "확인해보세요! 링크 👇" 같은 직접 홍보 절대 금지
+- URL이 있으면 포스팅 끝에 자연스럽게 포함
 
 위 분석 과정은 내부적으로만 수행하고 절대 출력하지 말 것.
 반드시 아래 JSON만 출력. 마크다운, 설명 텍스트 일절 금지.
 {
   "posts": [
     {
-      "source_title": "참고한 시팅랩 글 제목",
-      "source_url": "해당 글 URL",
       "insight": "핵심 인사이트 한 줄",
       "format": "${format}",
       "post": "스레드 게시글 본문"
@@ -509,16 +435,16 @@ export async function generateMagazinePost(count) {
   ]
 }`;
 
-    const text = await generateOnePost(prompt, true);
+    const text = await generateOnePost(prompt, false);
     const parsed = parseJson(text);
     if (parsed.posts && parsed.posts.length > 0) {
       const p = parsed.posts[0];
       results.push({
         type: "magazine",
-        source: p.source_title || "",
+        source: article.title,
         angle: p.format || format,
         post: p.post || "",
-        url: p.source_url || "",
+        url: article.url || "",
         insight: p.insight || "",
       });
     }
@@ -541,7 +467,7 @@ export async function runAgent(options) {
   const day = kstDate.getUTCDay();
 
   const forceType = options && options.forceType;
-  const count = (options && options.count) ? options.count : 1;
+  const count = options && options.count ? options.count : 1;
 
   const typeMap = {
     1: "observation",
@@ -560,24 +486,51 @@ export async function runAgent(options) {
 
   console.log(`콘텐츠 유형: ${targetType} (요일 코드: ${day})`);
 
+  // 시팅랩 아티클 로드
+  const articles = await fetchSitlabArticles();
+  if (!articles.length) {
+    throw new Error("시팅랩 아티클을 불러오지 못했습니다. 스프레드시트를 확인하세요.");
+  }
+
   let posts = [];
+  const used = new Set();
 
   switch (targetType) {
-    case "observation":
-      posts = await generateObservationPost();
+    case "observation": {
+      const article = pickArticle(articles, used);
+      used.add(article.title);
+      posts = await generateObservationPost(article);
       break;
-    case "debate":
-      posts = await generateDebatePost();
+    }
+    case "debate": {
+      const article = pickArticle(articles, used);
+      used.add(article.title);
+      posts = await generateDebatePost(article);
       break;
-    case "tip":
-      posts = await generateTipPost();
+    }
+    case "tip": {
+      const article = pickArticle(articles, used);
+      used.add(article.title);
+      posts = await generateTipPost(article);
       break;
-    case "trend":
-      posts = await generateTrendPost(count);
+    }
+    case "trend": {
+      const article = pickArticle(articles, used);
+      used.add(article.title);
+      posts = await generateTrendPost(article, count);
       break;
-    case "magazine":
-      posts = await generateMagazinePost(count);
+    }
+    case "magazine": {
+      // count만큼 다른 아티클에서 생성
+      for (let i = 0; i < count; i++) {
+        const article = pickArticle(articles, used);
+        used.add(article.title);
+        const result = await generateMagazinePost(article, 1);
+        posts.push(...result);
+        if (i < count - 1) await wait(120000);
+      }
       break;
+    }
     default:
       console.warn(`알 수 없는 유형: ${targetType}`);
   }
@@ -590,10 +543,16 @@ export async function runAgent(options) {
 
 /** @deprecated generateTrendPost 사용 권장 */
 export async function generateNewsPosts(count) {
-  return generateTrendPost(count);
+  const { fetchSitlabArticles: fetch, pickArticle: pick } = await import("./sheets.js");
+  const articles = await fetch();
+  const article = pick(articles);
+  return generateTrendPost(article, count);
 }
 
 /** @deprecated generateMagazinePost 사용 권장 */
 export async function generateSitlabPosts(count) {
-  return generateMagazinePost(count);
+  const { fetchSitlabArticles: fetch, pickArticle: pick } = await import("./sheets.js");
+  const articles = await fetch();
+  const article = pick(articles);
+  return generateMagazinePost(article, count);
 }
